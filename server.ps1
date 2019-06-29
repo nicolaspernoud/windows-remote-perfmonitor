@@ -6,7 +6,6 @@ $cpuUsageJob = Start-Job -ScriptBlock {
     $percentProcessorTime = Get-PerformanceCounterLocalName 6
     Get-Counter "\$processor(0)\$percentProcessorTime" -Continuous 
 } -InitializationScript { Import-Module "$env:WhereAmI\utils.psm1" }
-#Remove-Item $env:WhereAmI
 
 # Http Server
 $http = [System.Net.HttpListener]::new() 
@@ -22,7 +21,7 @@ if ($http.IsListening) {
     write-host " HTTP Server Ready!  " -f 'black' -b 'gre'
     write-host "try testing the different route examples: " -f 'y'
     write-host "Display dashboard : $($http.Prefixes)" -f 'y'
-    write-host "API: $($http.Prefixes)/api" -f 'y'
+    write-host "API: $($http.Prefixes)api" -f 'y'
 }
 
 # Init results
@@ -43,7 +42,7 @@ while ($http.IsListening) {
 
         # We can log the request to the terminal
         write-host "$($context.Request.UserHostAddress)  =>  $($context.Request.Url)" -f 'mag'
-
+    
         # Get GPU Data
         $tempResult = $gpuResult
         $gpuResult = 0
@@ -58,7 +57,7 @@ while ($http.IsListening) {
         Catch {
             $gpuResult = $tempResult
         }
-
+    
         # Get CPU Data
         $tempResult = $cpuResult
         $cpuResult = 0
@@ -73,12 +72,35 @@ while ($http.IsListening) {
         Catch {
             $cpuResult = $tempResult
         }
-
+    
         # the html/data you want to send to the browser
         # you could replace this with: [string]$html = Get-Content "C:\some\path\index.html" -Raw
-        [string]$html = "$($gpuResult);$($cpuResult)"
-        
+        [string]$html = "{`"gpuUsage`":$($gpuResult),`"cpuUsage`":$($cpuResult)}"
+            
         # Respond to the request
+        $buffer = [System.Text.Encoding]::UTF8.GetBytes($html) # convert htmtl to bytes
+        $context.Response.ContentLength64 = $buffer.Length
+        $context.Response.OutputStream.Write($buffer, 0, $buffer.Length) #stream to broswer
+        $context.Response.OutputStream.Close() # close the response
+        
+    }
+
+    # Web App - http://127.0.0.1/
+    elseif ($context.Request.HttpMethod -eq 'GET') {
+
+        # We can log the request to the terminal
+        write-host "$($context.Request.UserHostAddress)  =>  $($context.Request.Url)" -f 'mag'
+
+        # the html/data you want to send to the browser
+        # you could replace this with: [string]$html = w
+        if ($context.Request.RawUrl -eq '/') {
+            [string]$html = Get-Content "$PSScriptRoot/index.html" -Raw
+        }
+        else {
+            [string]$html = Get-Content "$PSScriptRoot$($context.Request.RawUrl)" -Raw
+        }
+        
+        #resposed to the request
         $buffer = [System.Text.Encoding]::UTF8.GetBytes($html) # convert htmtl to bytes
         $context.Response.ContentLength64 = $buffer.Length
         $context.Response.OutputStream.Write($buffer, 0, $buffer.Length) #stream to broswer
