@@ -75,7 +75,7 @@ while ($http.IsListening) {
     
         # the html/data you want to send to the browser
         # you could replace this with: [string]$html = Get-Content "C:\some\path\index.html" -Raw
-        [string]$html = "{`"gpuUsage`":$($gpuResult),`"cpuUsage`":$($cpuResult)}"
+        [string]$html = "{`"GPU_usage`":$($gpuResult),`"CPU_usage`":$($cpuResult)}"
             
         # Respond to the request
         $buffer = [System.Text.Encoding]::UTF8.GetBytes($html) # convert htmtl to bytes

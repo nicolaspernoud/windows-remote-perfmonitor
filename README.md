@@ -1,10 +1,16 @@
 # Windows Remote Performance Monitor
 
 Display several performance statistics (CPU Usage, GPU Usage, etc.) on a web page.
+It works better with MSI Afterburner, but an example without it is provided.
 
-## Usage
+## Usage (with MSI After Burner)
 
-Alter server.ps1 with the hostname and ports that suits your needs and start server.ps1.
+Alter with-msiab-server.ps1 with the hostname and ports that suits your needs and start with-msiab-server.ps1.
+Visit the website (default : http://localhost:8080)
+
+## Usage (without MSI After Burner)
+
+Alter without-msiab-server.ps1 with the hostname and ports that suits your needs and start without-msiab-server.ps1.
 Visit the website (default : http://localhost:8080)
 
 ## Caution

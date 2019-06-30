@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <title>Afterburner dashboard</title>
+  <title>Remote performance monitor</title>
   <script src="vendor/chart.js"></script>
 </head>
 
@@ -58,21 +58,36 @@
     <h2 id="date">0</h2>
   </div>
   <div class="item">
-    <h1>GPU</h1>
+    <h1></h1>
     <h2>0</h2>
-    <canvas id="gpuUsage"></canvas>
+    <canvas id="GPU usage"></canvas>
   </div>
   <div class="item">
-    <h1>CPU</h1>
+    <h1></h1>
     <h2>0</h2>
-    <canvas id="cpuUsage"></canvas>
+    <canvas id="GPU temperature"></canvas>
+  </div>
+  <div class="item">
+    <h1></h1>
+    <h2>0</h2>
+    <canvas id="Framerate"></canvas>
+  </div>
+  <div class="item">
+    <h1></h1>
+    <h2>0</h2>
+    <canvas id="CPU usage"></canvas>
+  </div>
+  <div class="item">
+    <h1></h1>
+    <h2>0</h2>
+    <canvas id="CPU temperature"></canvas>
   </div>
 </body>
 
 <script>
   // CONSTANTS
   const DATA_HISTORY = 20; // Number to old value to keep on charts
-  const UPDATE_RATE = 500; // Update rate in ms
+  const UPDATE_RATE = 1000; // Update rate in ms
 
   // Finds current time and date, formats it properly
   function startTime() {
@@ -149,9 +164,10 @@
       method: 'get',
     }).then(response => response.json())
       .then(
-        apps => {
+        dataObjectArray => {
           for (let i = 0; i < chartArray.length; i++) {
-            UpdateChart(chartArray[i], apps[chartArray[i].id]);
+            dataObject = dataObjectArray.find(x => x.SrcName === chartArray[i].id)
+            UpdateChart(chartArray[i], dataObject);
           }
         }
       )
@@ -215,17 +231,20 @@
     };
   }
 
-  function UpdateChart(chartObject, newData) {
+  function UpdateChart(chartObject, dataObject) {
     // Update counter
     document
       .getElementById(chartObject.id)
-      .parentNode.getElementsByTagName("h2")[0].innerHTML = Number(newData / 100).toLocaleString(undefined, { style: 'percent', minimumFractionDigits: 0 });
+      .parentNode.getElementsByTagName("h1")[0].innerHTML = dataObject.LocalizedSrcName;
+      document
+      .getElementById(chartObject.id)
+      .parentNode.getElementsByTagName("h2")[0].innerHTML = dataObject.Data + " " + dataObject.LocalizedSrcUnits;
     // Update chart
     let dataArray = chartObject.chart.data.datasets[0].data;
     if (dataArray.length >= DATA_HISTORY + 1) {
       dataArray.splice(0, 1);
     }
-    dataArray.push(newData);
+    dataArray.push(dataObject.Data);
     chartObject.chart.update();
   }
 
