@@ -1,256 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Remote performance monitor</title>
+    <script src="vendor/chart.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <title>Remote performance monitor</title>
-  <script src="vendor/chart.js"></script>
-</head>
+  <style>
+    html,
+    body {
+      height: 95%;
+      font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
+        sans-serif;
+    }
 
-<style>
-  @font-face {
-    font-family: proxima-nova-soft;
-    src: url(https://use.typekit.net/af/357d3c/00000000000000000001743c/27/l?primer=7ceb210e49ade74e23101e10f006f110a0b6588c7c57777a6e3d98a38b749696&fvd=n4&v=3) format("woff2"),
-      url(https://use.typekit.net/af/357d3c/00000000000000000001743c/27/d?primer=7ceb210e49ade74e23101e10f006f110a0b6588c7c57777a6e3d98a38b749696&fvd=n4&v=3) format("woff"),
-      url(https://use.typekit.net/af/357d3c/00000000000000000001743c/27/a?primer=7ceb210e49ade74e23101e10f006f110a0b6588c7c57777a6e3d98a38b749696&fvd=n4&v=3) format("opentype");
-    font-weight: 400;
-    font-style: normal;
-  }
+    .item {
+      display: grid;
+      grid-template-columns: 200px 100px auto;
+      grid-column-gap: 15px;
+      justify-items: center;
+      align-items: center;
+      min-width: 0;
+      min-height: 0;
+      border-radius: 5px;
+      background: whitesmoke;
+      box-shadow: 0px 0px 10px lightgray;
+      border-left: #0d47a1 solid 7px;
+    }
 
-  html,
-  body {
-    height: 95%;
-    font-family: "proxima-nova-soft", sans-serif;
-  }
+    h1,
+    h2 {
+      margin: 10px;
+      text-align: center;
+    }
 
-  .item {
-    display: grid;
-    grid-template-columns: 200px 100px auto;
-    grid-column-gap: 15px;
-    justify-items: center;
-    align-items: center;
-    min-width: 0;
-    min-height: 0;
-    border-radius: 10px;
-    background: #bbbbbb;
-    box-shadow: 0px 0px 10px lightgray;
-    border-left: black solid 7px;
-  }
+    canvas {
+      max-height: 90%;
+      max-width: 100%;
+    }
 
-  canvas {
-    max-height: 90%;
-    max-width: 100%;
-  }
+    body {
+      display: grid;
+      grid-template-rows: auto;
+      grid-row-gap: 15px;
+    }
 
-  body {
-    display: grid;
-    grid-template-rows: auto;
-    grid-row-gap: 15px;
-  }
-</style>
+    .time {
+      grid-template-columns: auto;
+      background: lightgrey;
+    }
+  </style>
 
-<body>
-  <div class="item">
-    <h1>Time</h1>
-    <h2 id="time">0</h2>
-    <h2 id="date">0</h2>
-  </div>
-  <div class="item">
-    <h1></h1>
-    <h2>0</h2>
-    <canvas id="GPU usage"></canvas>
-  </div>
-  <div class="item">
-    <h1></h1>
-    <h2>0</h2>
-    <canvas id="GPU temperature"></canvas>
-  </div>
-  <div class="item">
-    <h1></h1>
-    <h2>0</h2>
-    <canvas id="Framerate"></canvas>
-  </div>
-  <div class="item">
-    <h1></h1>
-    <h2>0</h2>
-    <canvas id="CPU usage"></canvas>
-  </div>
-  <div class="item">
-    <h1></h1>
-    <h2>0</h2>
-    <canvas id="CPU temperature"></canvas>
-  </div>
-</body>
+  <body>
+    <div class="item time">
+      <h1></h1>
+      <h1 id="time">0</h1>
+      <h1 id="date">0</h1>
+    </div>
+    <div class="item">
+      <h2></h2>
+      <h1></h1>
+      <canvas id="CPU usage"></canvas>
+    </div>
+    <div class="item">
+      <h2></h2>
+      <h1></h1>
+      <canvas id="CPU temperature"></canvas>
+    </div>
+    <div class="item">
+      <h2></h2>
+      <h1></h1>
+      <canvas id="GPU usage"></canvas>
+    </div>
+    <div class="item">
+      <h2></h2>
+      <h1></h1>
+      <canvas id="GPU temperature"></canvas>
+    </div>
+    <div class="item">
+      <h2></h2>
+      <h1></h1>
+      <canvas id="Framerate"></canvas>
+    </div>
+  </body>
 
-<script>
-  // CONSTANTS
-  const DATA_HISTORY = 20; // Number to old value to keep on charts
-  const UPDATE_RATE = 1000; // Update rate in ms
+  <script>
+    // CONSTANTS
+    const DATA_HISTORY = 20; // Number of old values to keep on charts
+    const UPDATE_RATE = 1000; // Update rate in ms
 
-  // Finds current time and date, formats it properly
-  function startTime() {
-    const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December"
-    ];
-    const dayNames = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday"
-    ];
-    let now = new Date();
-    let time = [now.getHours(), now.getMinutes(), now.getSeconds()];
-    let date = [
-      now.getDate(),
-      now.getDay(),
-      now.getMonth(),
-      now.getFullYear()
-    ];
-    let hour = time[0];
-    let mins = time[1];
-    let secs = time[2];
-    let day = date[0];
-    let weekday = dayNames[date[1]];
-    let month = monthNames[date[2]];
-    let year = date[3];
-    mins = mins < 10 ? "0" + mins : mins;
-    secs = secs < 10 ? "0" + secs : secs;
-    document.getElementById("time").innerHTML =
-      hour + ":" + mins + ":" + secs;
-    document.getElementById("date").innerHTML =
-      weekday + ", " + month + " " + day + ", " + year;
-    let t = setTimeout(startTime, 500);
-  }
+    // Finds current time and date, formats it properly
+    function startTime() {
+      let now = new Date();
+      document.getElementById("date").innerHTML = now.toLocaleString(
+        navigator.userLanguage,
+        { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+      );
+      document.getElementById("time").innerHTML = now.toLocaleString(
+        navigator.userLanguage,
+        { hour: "2-digit", minute: "2-digit", second: "2-digit" }
+      );
+      let t = setTimeout(startTime, 500);
+    }
 
-  // Create labels arry
-  let n = -1 * DATA_HISTORY;
-  let labels = [];
-  while (n <= 0) {
-    labels.push(n);
-    n++;
-  }
+    // Start time
+    startTime();
 
-  // Start time
-  startTime();
+    // Create labels array
+    let n = -1 * DATA_HISTORY;
+    let labels = [];
+    while (n <= 0) {
+      labels.push(n);
+      n++;
+    }
 
-  // Create charts
-  const canvasArray = document.getElementsByTagName("canvas");
-  let chartArray = [];
-  for (let i = 0; i < canvasArray.length; i++) {
-    chartArray.push(CreateChart(canvasArray.item(i)));
-  }
+    // Create charts
+    const canvasArray = document.getElementsByTagName("canvas");
+    let chartArray = [];
+    for (let i = 0; i < canvasArray.length; i++) {
+      chartArray.push(CreateChart(canvasArray.item(i)));
+    }
 
-  // Update charts every interval (ms)
-  setInterval(Update, UPDATE_RATE);
+    // Update charts every interval (ms)
+    setInterval(Update, UPDATE_RATE);
 
-  function Update() {
-    fetch('/api', {
-      method: 'get',
-    }).then(response => response.json())
-      .then(
-        dataObjectArray => {
+    function Update() {
+      fetch("/api", {
+        method: "get"
+      })
+        .then(response => response.json())
+        .then(dataObjectArray => {
           for (let i = 0; i < chartArray.length; i++) {
-            dataObject = dataObjectArray.find(x => x.SrcName === chartArray[i].id)
+            dataObject = dataObjectArray.find(
+              x => x.SrcName === chartArray[i].id
+            );
             UpdateChart(chartArray[i], dataObject);
           }
-        }
-      )
-      .catch(err => console.log(err));
-  }
+        })
+        .catch(err => console.log(err));
+    }
 
-  // CreateChart creates a chart and returns an handle to the create chart
-  function CreateChart(canvas) {
-    const ctx = canvas.getContext("2d");
-    return {
-      id: canvas.id,
-      chart: new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              borderColor: `rgb(${getRandomInt(255)}, ${getRandomInt(
-                255
-              )}, ${getRandomInt(255)})`,
-              data: [],
-              fill: false,
-              borderWidth: 10,
-              pointRadius: 0
-            }
-          ]
-        },
-        options: {
-          legend: {
-            display: false
-          },
-          animation: {
-            duration: UPDATE_RATE / 5
-          },
-          scales: {
-            xAxes: [
+    // CreateChart creates a chart and returns an handle to the create chart
+    function CreateChart(canvas) {
+      const ctx = canvas.getContext("2d");
+      return {
+        id: canvas.id,
+        chart: new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
               {
-                gridLines: {
-                  display: false,
-                  drawBorder: false
-                },
-                ticks: {
-                  display: false
-                }
-              }
-            ],
-            yAxes: [
-              {
-                gridLines: {
-                  display: false,
-                  drawBorder: false
-                },
-                ticks: {
-                  display: false
-                }
+                borderColor: `rgb(${getRandomInt(255)}, ${getRandomInt(
+                  255
+                )}, ${getRandomInt(255)})`,
+                data: [],
+                fill: false,
+                borderWidth: 10,
+                pointRadius: 0
               }
             ]
+          },
+          options: {
+            legend: {
+              display: false
+            },
+            animation: {
+              duration: UPDATE_RATE / 5
+            },
+            scales: {
+              xAxes: [
+                {
+                  gridLines: {
+                    display: false,
+                    drawBorder: false
+                  },
+                  ticks: {
+                    display: false
+                  }
+                }
+              ],
+              yAxes: [
+                {
+                  gridLines: {
+                    display: false,
+                    drawBorder: false
+                  },
+                  ticks: {
+                    display: false,
+                    suggestedMin: 0,
+                    suggestedMax: 100
+                  }
+                }
+              ]
+            }
           }
-        }
-      })
-    };
-  }
-
-  function UpdateChart(chartObject, dataObject) {
-    // Update counter
-    document
-      .getElementById(chartObject.id)
-      .parentNode.getElementsByTagName("h1")[0].innerHTML = dataObject.LocalizedSrcName;
-      document
-      .getElementById(chartObject.id)
-      .parentNode.getElementsByTagName("h2")[0].innerHTML = dataObject.Data + " " + dataObject.LocalizedSrcUnits;
-    // Update chart
-    let dataArray = chartObject.chart.data.datasets[0].data;
-    if (dataArray.length >= DATA_HISTORY + 1) {
-      dataArray.splice(0, 1);
+        })
+      };
     }
-    dataArray.push(dataObject.Data);
-    chartObject.chart.update();
-  }
 
-  function getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
-  }
-</script>
+    function UpdateChart(chartObject, dataObject) {
+      // Update counter
+      document
+        .getElementById(chartObject.id)
+        .parentNode.getElementsByTagName("h2")[0].innerHTML =
+        dataObject.LocalizedSrcName;
+      document
+        .getElementById(chartObject.id)
+        .parentNode.getElementsByTagName("h1")[0].innerHTML =
+        dataObject.Data.toFixed(0) + " " + dataObject.LocalizedSrcUnits;
+      // Update chart
+      let dataArray = chartObject.chart.data.datasets[0].data;
+      if (dataArray.length >= DATA_HISTORY + 1) {
+        dataArray.splice(0, 1);
+      }
+      dataArray.push(dataObject.Data);
+      chartObject.chart.update();
+    }
 
+    function getRandomInt(max) {
+      return Math.floor(Math.random() * Math.floor(max));
+    }
+  </script>
 </html>

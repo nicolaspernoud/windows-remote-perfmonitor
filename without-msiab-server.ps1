@@ -74,11 +74,38 @@ while ($http.IsListening) {
         }
     
         # the html/data you want to send to the browser
-        # you could replace this with: [string]$html = Get-Content "C:\some\path\index.html" -Raw
-        [string]$html = "{`"GPU_usage`":$($gpuResult),`"CPU_usage`":$($cpuResult)}"
+        [string]$json = "
+        [
+            {
+                `"SrcName`":  `"CPU usage`",
+                `"SrcUnits`":  `"%`",
+                `"LocalizedSrcName`":  `"Utilisation CPU`",
+                `"LocalizedSrcUnits`":  `"%`",
+                `"RecommendedFormat`":  `"%.0f`",
+                `"Data`":  $($cpuResult),
+                `"MinLimit`":  0,
+                `"MaxLimit`":  100,
+                `"Flags`":  2,
+                `"SrcId`":  144
+            },
+            {
+                `"SrcName`":  `"GPU usage`",
+                `"SrcUnits`":  `"%`",
+                `"LocalizedSrcName`":  `"Utilisation GPU`",
+                `"LocalizedSrcUnits`":  `"%`",
+                `"RecommendedFormat`":  `"%.0f`",
+                `"Data`":  $($gpuResult),
+                `"MinLimit`":  0,
+                `"MaxLimit`":  100,
+                `"Flags`":  2,
+                `"GPU`":  0,
+                `"SrcId`":  48
+            }
+        ]"
             
         # Respond to the request
-        $buffer = [System.Text.Encoding]::UTF8.GetBytes($html) # convert htmtl to bytes
+        $buffer = [System.Text.Encoding]::UTF8.GetBytes($json) # convert htmtl to bytes
+        $context.Response.AppendHeader("Content-Type", "application/json; charset=utf-8");
         $context.Response.ContentLength64 = $buffer.Length
         $context.Response.OutputStream.Write($buffer, 0, $buffer.Length) #stream to broswer
         $context.Response.OutputStream.Close() # close the response

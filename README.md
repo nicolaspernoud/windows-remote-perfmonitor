@@ -6,12 +6,16 @@ It works better with MSI Afterburner, but an example without it is provided.
 ## Usage (with MSI After Burner)
 
 Alter with-msiab-server.ps1 with the hostname and ports that suits your needs and start with-msiab-server.ps1.
-Visit the website (default : http://localhost:8080)
+Visit the website (http://localhost)
 
 ## Usage (without MSI After Burner)
 
 Alter without-msiab-server.ps1 with the hostname and ports that suits your needs and start without-msiab-server.ps1.
-Visit the website (default : http://localhost:8080)
+Visit the website (http://localhost)
+
+## Permissions
+
+The scripts must be run as administrator.
 
 ## Caution
 
