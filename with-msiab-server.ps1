@@ -1,6 +1,6 @@
 # Wait for MSI Afterburner to start
 Write-Host "Waiting for MSI Afterburner..."
-$afterburner = false
+$afterburner = $false
 while (!$afterburner) {
     $afterburner = Get-Process MSIAfterburner -ErrorAction SilentlyContinue
     Start-Sleep 5

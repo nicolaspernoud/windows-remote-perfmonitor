@@ -32,7 +32,9 @@
         sans-serif;
     }
 
-    .item {
+    .counter,
+    .time,
+    .big {
       display: grid;
       grid-template-columns: 200px 120px auto;
       grid-column-gap: 15px;
@@ -45,6 +47,24 @@
       color: lightgrey;
       box-shadow: 0px 0px 10px lightgray;
       border-left: #0d47a1 solid 7px;
+      transition: 1s ease all;
+    }
+
+    .time {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .big {
+      grid-template-columns: auto;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    .hidden {
+      opacity: 0;
+    }
+
+    .big h1 {
+      font-size: 10vw;
     }
 
     h1,
@@ -69,38 +89,34 @@
       grid-row-gap: 15px;
       background-color: #222222;
     }
-
-    .time {
-      grid-template-columns: 1fr 1fr;
-    }
   </style>
 
   <body>
-    <div class="item time">
+    <div class="time" id="timedate">
       <h1 id="time">0</h1>
       <h1 id="date">0</h1>
     </div>
-    <div class="item">
+    <div class="counter">
       <h2></h2>
       <h1></h1>
       <canvas id="CPU usage"></canvas>
     </div>
-    <div class="item">
+    <div class="counter">
       <h2></h2>
       <h1></h1>
       <canvas id="CPU temperature"></canvas>
     </div>
-    <div class="item">
+    <div class="counter">
       <h2></h2>
       <h1></h1>
       <canvas id="GPU usage"></canvas>
     </div>
-    <div class="item">
+    <div class="counter">
       <h2></h2>
       <h1></h1>
       <canvas id="GPU temperature"></canvas>
     </div>
-    <div class="item">
+    <div class="counter">
       <h2></h2>
       <h1></h1>
       <canvas id="Framerate"></canvas>
@@ -111,6 +127,24 @@
     // CONSTANTS
     const DATA_HISTORY = 20; // Number of old values to keep on charts
     const UPDATE_RATE = 1000; // Update rate in ms
+    // Create labels array
+    let n = -1 * DATA_HISTORY;
+    let labels = [];
+    while (n <= 0) {
+      labels.push(n);
+      n++;
+    }
+
+    // CREATE CHARTS
+    const canvasArray = document.getElementsByTagName("canvas");
+    let chartArray = [];
+    for (let i = 0; i < canvasArray.length; i++) {
+      chartArray.push(createChart(canvasArray.item(i)));
+    }
+
+    // START COUNTERS
+    startTime();
+    update();
 
     // Finds current time and date, formats it properly
     function startTime() {
@@ -126,45 +160,34 @@
       let t = setTimeout(startTime, 500);
     }
 
-    // Start time
-    startTime();
+    function update() {
+      const controller = new AbortController();
+      const signal = controller.signal;
+      const fetchPromise = fetch("/api", { signal });
+      // timeout:
+      const timeoutId = setTimeout(() => controller.abort(), UPDATE_RATE);
 
-    // Create labels array
-    let n = -1 * DATA_HISTORY;
-    let labels = [];
-    while (n <= 0) {
-      labels.push(n);
-      n++;
-    }
-
-    // Create charts
-    const canvasArray = document.getElementsByTagName("canvas");
-    let chartArray = [];
-    for (let i = 0; i < canvasArray.length; i++) {
-      chartArray.push(CreateChart(canvasArray.item(i)));
-    }
-
-    // Update charts every interval (ms)
-    setInterval(Update, UPDATE_RATE);
-
-    function Update() {
-      fetch("/api", {
-        method: "get"
-      })
+      fetchPromise
         .then(response => response.json())
         .then(dataObjectArray => {
           for (let i = 0; i < chartArray.length; i++) {
             dataObject = dataObjectArray.find(
               x => x.SrcName === chartArray[i].id
             );
-            UpdateChart(chartArray[i], dataObject);
+            updateChart(chartArray[i], dataObject);
           }
+          let t = setTimeout(update, UPDATE_RATE);
+          showCharts();
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+          console.error(err);
+          let t = setTimeout(update, 1000 * 60); // On error do not retry for 1 minute
+          hideCharts();
+        });
     }
 
-    // CreateChart creates a chart and returns an handle to the create chart
-    function CreateChart(canvas) {
+    // createChart creates a chart and returns an handle to the create chart
+    function createChart(canvas) {
       const ctx = canvas.getContext("2d");
       return {
         id: canvas.id,
@@ -222,7 +245,7 @@
       };
     }
 
-    function UpdateChart(chartObject, dataObject) {
+    function updateChart(chartObject, dataObject) {
       // Update counter
       document
         .getElementById(chartObject.id)
@@ -243,6 +266,26 @@
 
     function getRandomInt(max) {
       return Math.floor(Math.random() * Math.floor(max));
+    }
+
+    function showCharts() {
+      for (let el of document.querySelectorAll(".counter")) {
+        el.style.display = "grid";
+        el.classList.remove("hidden");
+      }
+      document.getElementById("timedate").classList.add("time");
+      document.getElementById("timedate").classList.remove("big");
+    }
+
+    function hideCharts() {
+      for (let el of document.querySelectorAll(".counter"))
+        el.classList.add("hidden");
+      setTimeout(() => {
+        for (let el of document.querySelectorAll(".counter"))
+          el.style.display = "none";
+        document.getElementById("timedate").classList.add("big");
+        document.getElementById("timedate").classList.remove("time");
+      }, 1000);
     }
   </script>
 </html>
