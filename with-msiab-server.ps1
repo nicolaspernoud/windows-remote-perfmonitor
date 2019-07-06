@@ -1,3 +1,12 @@
+# Wait for MSI Afterburner to start
+Write-Host "Waiting for MSI Afterburner..."
+$afterburner = false
+while (!$afterburner) {
+    $afterburner = Get-Process MSIAfterburner -ErrorAction SilentlyContinue
+    Start-Sleep 5
+}
+Write-Host "MSI Afterburner found !"
+
 # Init MSI Afterburner hardware monitor
 Add-Type -Path $PSScriptRoot\MSIAfterburner.NET.dll
 $hmon = New-Object MSI.Afterburner.HardwareMonitor
@@ -13,9 +22,9 @@ $http.Start()
 
 # Log ready message to terminal 
 if ($http.IsListening) {
-    write-host " HTTP Server Ready!  " -f 'black' -b 'gre'
-    write-host "Display dashboard : $($http.Prefixes)" -f 'y'
-    write-host "API: $($http.Prefixes)api" -f 'y'
+    Write-Host " HTTP Server Ready!  " -f 'black' -b 'gre'
+    Write-Host "Display dashboard : $($http.Prefixes)" -f 'y'
+    Write-Host "API: $($http.Prefixes)api" -f 'y'
 }
 
 # INFINITE LOOP
@@ -28,7 +37,7 @@ while ($http.IsListening) {
     $context = $http.GetContext()
 
     # Log the request to the terminal
-    write-host "$($context.Request.UserHostAddress)  =>  $($context.Request.Url)" -f 'mag'
+    Write-Host "$($context.Request.UserHostAddress)  =>  $($context.Request.Url)" -f 'mag'
 
     # API - http://127.0.0.1/api
     if ($context.Request.HttpMethod -eq 'GET' -and $context.Request.RawUrl -eq '/api') {
@@ -50,14 +59,13 @@ while ($http.IsListening) {
 
         # Get served files data
         if ($context.Request.RawUrl -eq '/') {
-            [string]$html = Get-Content "$PSScriptRoot/index.html" -Raw
+            $buffer = Get-Content "$PSScriptRoot/index.html" -Encoding Byte -ReadCount 0
         }
         else {
-            [string]$html = Get-Content "$PSScriptRoot$($context.Request.RawUrl)" -Raw
+            $buffer = Get-Content "$PSScriptRoot$($context.Request.RawUrl)" -Encoding Byte -ReadCount 0
         }
 
         # Respond to the request
-        $buffer = [System.Text.Encoding]::UTF8.GetBytes($html) # convert htmtl to bytes
         $context.Response.AppendHeader("Content-Type", "text/html; charset=utf-8");
         $context.Response.ContentLength64 = $buffer.Length
         $context.Response.OutputStream.Write($buffer, 0, $buffer.Length) #stream to broswer
