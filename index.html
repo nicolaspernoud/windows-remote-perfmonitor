@@ -29,22 +29,24 @@
       --accent: #0d47a1;
       --primary: lightgray;
       --secondary: black;
-      --shadow: 0px 0px 10px lightgray;
-      --background: #222222;
+      --background: black;
     }
 
-    html,
-    body {
-      height: 95%;
+    html {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
       font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
         sans-serif;
     }
 
     body {
+      height: 95%;
       display: grid;
       grid-template-rows: auto;
       grid-row-gap: 15px;
-      background-color: var(--background);
+      background: var(--background);
     }
 
     .counter,
@@ -60,8 +62,10 @@
       border-radius: 5px;
       background: var(--secondary);
       color: var(--primary);
-      box-shadow: var(--shadow);
       border-left: var(--accent) solid 7px;
+      border-right: var(--accent) solid 2px;
+      border-top: var(--accent) solid 2px;
+      border-bottom: var(--accent) solid 2px;
     }
 
     .time {
@@ -202,7 +206,7 @@
         })
         .catch(err => {
           console.error(err);
-          setTimeout(update, 1000 * 60); // On error do not retry for 1 minute
+          setTimeout(update, 1000 * 30); // On error do not retry for 30 seconds
           if (chartsDisplayed === true) {
             chartsDisplayed = false;
             hideCharts();
