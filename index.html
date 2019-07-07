@@ -25,11 +25,26 @@
   </head>
 
   <style>
+    :root {
+      --accent: #0d47a1;
+      --primary: lightgray;
+      --secondary: black;
+      --shadow: 0px 0px 10px lightgray;
+      --background: #222222;
+    }
+
     html,
     body {
       height: 95%;
       font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
         sans-serif;
+    }
+
+    body {
+      display: grid;
+      grid-template-rows: auto;
+      grid-row-gap: 15px;
+      background-color: var(--background);
     }
 
     .counter,
@@ -43,11 +58,10 @@
       min-width: 0;
       min-height: 0;
       border-radius: 5px;
-      background: black;
-      color: lightgrey;
-      box-shadow: 0px 0px 10px lightgray;
-      border-left: #0d47a1 solid 7px;
-      transition: 1s ease all;
+      background: var(--secondary);
+      color: var(--primary);
+      box-shadow: var(--shadow);
+      border-left: var(--accent) solid 7px;
     }
 
     .time {
@@ -57,10 +71,6 @@
     .big {
       grid-template-columns: auto;
       grid-template-rows: 1fr 1fr;
-    }
-
-    .hidden {
-      opacity: 0;
     }
 
     .big h1 {
@@ -83,15 +93,21 @@
       max-width: 100%;
     }
 
-    body {
-      display: grid;
-      grid-template-rows: auto;
-      grid-row-gap: 15px;
-      background-color: #222222;
+    #mask {
+      position: fixed;
+      z-index: 999;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      background-color: var(--background);
+      transition: opacity 1s ease;
     }
   </style>
 
   <body>
+    <div id="mask"></div>
     <div class="time" id="timedate">
       <h1 id="time">0</h1>
       <h1 id="date">0</h1>
@@ -134,6 +150,8 @@
       labels.push(n);
       n++;
     }
+    // VARS
+    let chartsDisplayed = true;
 
     // CREATE CHARTS
     const canvasArray = document.getElementsByTagName("canvas");
@@ -157,15 +175,15 @@
         navigator.userLanguage,
         { hour: "2-digit", minute: "2-digit", second: "2-digit" }
       );
-      let t = setTimeout(startTime, 500);
+      setTimeout(startTime, 500);
     }
 
     function update() {
       const controller = new AbortController();
       const signal = controller.signal;
       const fetchPromise = fetch("/api", { signal });
-      // timeout:
-      const timeoutId = setTimeout(() => controller.abort(), UPDATE_RATE);
+      // timeout
+      setTimeout(() => controller.abort(), UPDATE_RATE);
 
       fetchPromise
         .then(response => response.json())
@@ -176,13 +194,19 @@
             );
             updateChart(chartArray[i], dataObject);
           }
-          let t = setTimeout(update, UPDATE_RATE);
-          showCharts();
+          setTimeout(update, UPDATE_RATE);
+          if (chartsDisplayed === false) {
+            chartsDisplayed = true;
+            showCharts();
+          }
         })
         .catch(err => {
           console.error(err);
-          let t = setTimeout(update, 1000 * 60); // On error do not retry for 1 minute
-          hideCharts();
+          setTimeout(update, 1000 * 60); // On error do not retry for 1 minute
+          if (chartsDisplayed === true) {
+            chartsDisplayed = false;
+            hideCharts();
+          }
         });
     }
 
@@ -269,23 +293,34 @@
     }
 
     function showCharts() {
-      for (let el of document.querySelectorAll(".counter")) {
-        el.style.display = "grid";
-        el.classList.remove("hidden");
-      }
-      document.getElementById("timedate").classList.add("time");
-      document.getElementById("timedate").classList.remove("big");
+      fade();
+      setTimeout(() => {
+        for (let el of document.querySelectorAll(".counter"))
+          el.style.display = "grid";
+        document.getElementById("timedate").classList.add("time");
+        document.getElementById("timedate").classList.remove("big");
+        fade();
+      }, 1100);
     }
 
     function hideCharts() {
-      for (let el of document.querySelectorAll(".counter"))
-        el.classList.add("hidden");
+      fade();
       setTimeout(() => {
         for (let el of document.querySelectorAll(".counter"))
           el.style.display = "none";
         document.getElementById("timedate").classList.add("big");
         document.getElementById("timedate").classList.remove("time");
-      }, 1000);
+        fade();
+      }, 1100);
+    }
+
+    function fade() {
+      let mask = document.getElementById("mask");
+      if (mask.style.opacity == 1) {
+        mask.style.opacity = 0;
+      } else {
+        mask.style.opacity = 1;
+      }
     }
   </script>
 </html>
