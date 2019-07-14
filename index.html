@@ -28,6 +28,7 @@
     :root {
       --accent: #0d47a1;
       --primary: lightgray;
+      --primary-darker: rgb(75, 75, 75);
       --secondary: black;
       --background: black;
     }
@@ -68,6 +69,15 @@
       border-bottom: var(--accent) solid 2px;
     }
 
+    h1,
+    h2 {
+      font-size: 4vh;
+    }
+
+    .counter h2 {
+      font-size: 3vh;
+    }
+
     .time {
       grid-template-columns: 1fr 1fr;
     }
@@ -75,21 +85,16 @@
     .big {
       grid-template-columns: auto;
       grid-template-rows: 1fr 1fr;
+      border: none;
+      color: var(--primary-darker);
     }
 
     .big h1 {
-      font-size: 10vw;
+      font-size: 15vw;
     }
 
-    h1,
-    h2 {
-      margin: 10px;
-      text-align: center;
-      font-size: 4vh;
-    }
-
-    h2 {
-      font-size: 3vh;
+    .big h2 {
+      font-size: 8vw;
     }
 
     canvas {
@@ -114,7 +119,7 @@
     <div id="mask"></div>
     <div class="time" id="timedate">
       <h1 id="time">0</h1>
-      <h1 id="date">0</h1>
+      <h2 id="date">0</h2>
     </div>
     <div class="counter">
       <h2></h2>
@@ -187,7 +192,7 @@
       const signal = controller.signal;
       const fetchPromise = fetch("/api", { signal });
       // timeout
-      setTimeout(() => controller.abort(), UPDATE_RATE);
+      setTimeout(() => controller.abort(), UPDATE_RATE * 2);
 
       fetchPromise
         .then(response => response.json())
