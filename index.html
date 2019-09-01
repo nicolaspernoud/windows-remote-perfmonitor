@@ -52,10 +52,8 @@
     }
 
     .counter,
-    .time,
-    .big {
+    .time {
       display: grid;
-      grid-template-columns: 200px 120px auto;
       grid-column-gap: 15px;
       justify-items: center;
       align-items: center;
@@ -70,8 +68,15 @@
       border-bottom: var(--accent) solid 2px;
     }
 
-    h1,
-    h2 {
+    .counter {
+      grid-template-columns: 200px 120px auto;
+    }
+
+    .time {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .counter h1 {
       font-size: 4vh;
     }
 
@@ -79,23 +84,22 @@
       font-size: 3vh;
     }
 
-    .time {
-      grid-template-columns: 1fr 1fr;
-    }
-
     .big {
-      grid-template-columns: auto;
-      grid-template-rows: 1fr 1fr;
-      border: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
       color: var(--primary-darker);
+      text-align: center;
     }
 
     .big h1 {
       font-size: 15vw;
+      margin: 0;
     }
 
     .big h2 {
       font-size: 8vw;
+      margin: 0;
     }
 
     canvas {
