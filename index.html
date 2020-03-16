@@ -27,8 +27,7 @@
   <style>
     :root {
       --accent: #0d47a1;
-      --primary: lightgray;
-      --primary-darker: rgb(75, 75, 75);
+      --primary: white;
       --secondary: black;
       --background: black;
     }
@@ -38,7 +37,8 @@
       flex-direction: column;
       justify-content: center;
       height: 100%;
-      font-family: "Gill Sans", "Gill Sans MT", "Calibri", "Trebuchet MS", sans-serif;
+      font-family: "Gill Sans", "Gill Sans MT", "Calibri", "Trebuchet MS",
+        sans-serif;
     }
 
     body {
@@ -88,7 +88,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-around;
-      color: var(--primary-darker);
+      color: var(--primary);
       text-align: center;
     }
 
@@ -183,11 +183,20 @@
       let now = new Date();
       document.getElementById("date").innerHTML = now.toLocaleString(
         navigator.userLanguage,
-        { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+        {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        }
       );
       document.getElementById("time").innerHTML = now.toLocaleString(
         navigator.userLanguage,
-        { hour: "2-digit", minute: "2-digit", second: "2-digit" }
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        }
       );
       setTimeout(startTime, 500);
     }

@@ -19,4 +19,4 @@ The scripts must be run as administrator.
 
 ## Caution
 
-This app is not meant to be secure, do not exposes on public network. It's for local network monitoring only inside trust zone.
+This app is not meant to be secure, do not expose on public network. It's for local network monitoring only inside trust zone.
