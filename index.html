@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Remote performance monitor</title>
-    <script src="vendor/chart.js"></script>
+    <script src="vendor/Chart.min.js"></script>
     <!-- icons for showing application on android desktop (PWA) -->
     <link
       rel="icon"
@@ -42,9 +42,8 @@
     }
 
     body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
+      padding: 5px;
+      height: 98%;
       display: grid;
       grid-template-rows: auto;
       grid-row-gap: 15px;
@@ -77,11 +76,12 @@
     }
 
     .counter h1 {
-      font-size: 4vh;
+      font-size: min(4vh, 4vw);
     }
 
     .counter h2 {
-      font-size: 3vh;
+      font-size: min(2vh, 2vw);
+      padding: 15px;
     }
 
     .big {
